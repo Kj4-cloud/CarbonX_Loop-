@@ -7,6 +7,7 @@ import {
   connectMetaMask,
   isMetaMaskAvailable,
 } from "../blockchain/walletUtils";
+import { mintCredits } from "../blockchain/mint";
 
 /* ═══════════════════════════════════════════════════════════════════
    Processing Steps — the realistic blockchain animation sequence
@@ -387,12 +388,28 @@ export default function CheckoutPage({
         // Refresh buyer wallet
         await fetchWallet();
       } else {
-        // MetaMask payment — simulate with tx hash from MetaMask address
-        txHash =
-          "0x" +
-          [...Array(64)]
-            .map(() => Math.floor(Math.random() * 16).toString(16))
-            .join("");
+        // MetaMask payment — execute actual blockchain transaction
+        try {
+          // mintCredits needs the user's wallet address and the amount.
+          // In a real application, you'd mint tokens for each specific project/cart item, 
+          // or a total number of tokens. We will mint the total credits purchased.
+          const txResponse = await mintCredits(metamaskAddress, totalItems);
+          
+          if (txResponse && txResponse.hash) {
+            txHash = txResponse.hash;
+          } else {
+             // Fallback if the mint function doesn't return the tx object
+             txHash =
+              "0x" +
+              [...Array(64)]
+                .map(() => Math.floor(Math.random() * 16).toString(16))
+                .join("");
+          }
+        } catch (mintErr) {
+          console.error("Minting failed:", mintErr);
+          // If the user rejects the transaction, throw the error to bubble it up
+          throw new Error(mintErr.reason || mintErr.message || "MetaMask transaction failed or rejected. Please try again.");
+        }
       }
 
       // 4. Deduct credits from each project
