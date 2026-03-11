@@ -27,16 +27,7 @@ export default function Sidebar({
     <aside className="sidebar">
       {/* Logo */}
       <div className="sidebar-logo">
-        {/* <div className="sidebar-logo-icon">
-          <span
-            className="material-symbols-outlined text-white"
-            style={{ fontSize: "1.25rem" }}
-          >
-            {appIcon}
-          </span>
-        </div> */}
-        <img src="../applogo.png" alt="CarbonX Logo" className="h-15 ml-4" />
-
+        <img src="/applogo.png" alt="CarbonX Logo" className="h-15 ml-4" />
         <h1 className="sidebar-logo-text">{appName}</h1>
       </div>
 

@@ -2,6 +2,7 @@ import React from "react";
 import { Outlet, useNavigate } from "react-router-dom";
 import Sidebar from "../Seller/shared/Sidebar";
 import { useAuth } from "../context/AuthContext";
+import { useTheme } from "../hooks/useStore";
 import "./SellerLayout.css";
 
 const NAV_ITEMS = [
@@ -43,6 +44,7 @@ const NAV_ITEMS = [
  */
 export default function SellerLayout() {
   const { user, farmerProfile, signOut } = useAuth();
+  const { isDark } = useTheme();
   const navigate = useNavigate();
 
   const handleSignOut = async () => {
@@ -60,7 +62,7 @@ export default function SellerLayout() {
   };
 
   return (
-    <div className="seller-layout">
+    <div className={`seller-layout ${isDark ? "dark" : ""}`}>
       {/* Sidebar */}
       <Sidebar
         appName="carbonX"

@@ -4,12 +4,20 @@
   min-height: 100dvh;
   background: var(--bg-light, #f8faf9);
   font-family: 'Manrope', sans-serif;
+  color: var(--slate-900);
+  transition: background 0.3s ease, color 0.3s ease;
+}
+
+.seller-layout.dark {
+  background: var(--bg-light);
+  color: var(--slate-900);
 }
 
 .seller-layout-content {
   flex: 1;
   margin-left: 5rem;
   transition: margin-left 0.2s;
+  min-height: 100dvh;
 }
 
 @media (min-width: 768px) {
