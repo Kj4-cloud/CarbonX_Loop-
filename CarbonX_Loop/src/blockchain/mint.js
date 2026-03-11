@@ -1,4 +1,5 @@
 import { getContract } from "./contract"
+import abi from "../abi/carbonCreditsABI.json"
 
 export async function mintCredits(address, amount) {
 
