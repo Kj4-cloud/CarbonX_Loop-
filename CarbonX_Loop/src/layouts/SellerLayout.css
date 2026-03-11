@@ -1,0 +1,19 @@
+/* ===== Seller Layout Shell ===== */
+.seller-layout {
+  display: flex;
+  min-height: 100dvh;
+  background: var(--bg-light, #f8faf9);
+  font-family: 'Manrope', sans-serif;
+}
+
+.seller-layout-content {
+  flex: 1;
+  margin-left: 5rem;
+  transition: margin-left 0.2s;
+}
+
+@media (min-width: 768px) {
+  .seller-layout-content {
+    margin-left: 16rem;
+  }
+}
