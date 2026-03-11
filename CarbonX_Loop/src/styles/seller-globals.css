@@ -1,0 +1,56 @@
+/*
+ * Seller Module — Global CSS Import
+ * Imports all Seller component CSS files so they are processed by Vite
+ * alongside Tailwind. This file is imported from main.jsx AFTER index.css
+ * to ensure Seller styles take precedence over Tailwind's preflight reset.
+ */
+
+@import "../Seller/shared/Sidebar.css";
+@import "../Seller/shared/NavRail.css";
+@import "../Seller/FarmerProfileDashboard/FarmerProfileDashboard.css";
+@import "../Seller/ProjectSubmission/ProjectSubmission.css";
+@import "../Seller/PhotoVerification/PhotoVerification.css";
+@import "../Seller/SalesAnalytics/SalesAnalytics.css";
+@import "../Seller/BlockchainExplorer/BlockchainExplorer.css";
+@import "../layouts/SellerLayout.css";
+
+/*
+ * Tailwind v4 Preflight Overrides
+ * Tailwind's preflight sets border-width: 0 and resets many styles globally.
+ * The following ensures Seller components retain their intended borders,
+ * backgrounds, list styles, and other properties that Tailwind resets.
+ */
+.sidebar,
+.sidebar *,
+.seller-layout,
+.seller-layout-content,
+.fpd-main,
+.fpd-main *,
+.ps-main,
+.ps-main *,
+.pv-content,
+.pv-content *,
+.sa-main,
+.sa-main *,
+.be-main,
+.be-main * {
+  border-style: solid;
+  border-color: transparent;
+}
+
+/* Also restore list-style overrides Tailwind removes */
+.sidebar-nav-list,
+.fpd-steps-grid {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+/* Ensure buttons/links used in Seller module keep their pointer cursor */
+.sidebar-nav-item,
+.fpd-suggestion,
+.fpd-payout-btn,
+.fpd-modal-btn-cancel,
+.fpd-modal-btn-submit {
+  cursor: pointer;
+}
