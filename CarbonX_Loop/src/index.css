@@ -101,3 +101,73 @@ body {
   font-family: var(--font-family-display);
   -webkit-tap-highlight-color: transparent;
 }
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* ── Animations ── */
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes pulse-ring {
+  0% {
+    box-shadow: 0 0 0 0 rgba(19, 236, 109, 0.45);
+  }
+  70% {
+    box-shadow: 0 0 0 12px rgba(19, 236, 109, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(19, 236, 109, 0);
+  }
+}
+@keyframes notifSlide {
+  0% {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  10% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  85% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+}
+
+.animate-slide-up {
+  animation: slideUp 0.4s ease-out forwards;
+}
+.animate-fade-in {
+  animation: fadeIn 0.2s ease;
+}
+.animate-pulse-ring {
+  animation: pulse-ring 2s infinite;
+}
+.animate-notif {
+  animation: notifSlide 2.5s ease forwards;
+}
