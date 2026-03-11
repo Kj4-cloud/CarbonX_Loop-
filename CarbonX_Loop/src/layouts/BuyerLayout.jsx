@@ -6,6 +6,7 @@ import PortfolioPage from "../Buyer/PortfolioPage";
 import ImpactPage from "../Buyer/ImpactPage";
 import AccountPage from "../Buyer/AccountPage";
 import WalletPage from "../Buyer/WalletPage";
+import BlockchainProofPage from "../Buyer/BlockchainProofPage";
 import CheckoutPage from "../Buyer/CheckoutPage";
 import InvoicePage from "../Buyer/InvoicePage";
 import CartModal from "../Buyer/CartModal";
@@ -109,6 +110,7 @@ export default function BuyerLayout() {
           {currentPage === "portfolio" && (
             <PortfolioPage cart={cart} onNavigate={navigateTo} />
           )}
+          {currentPage === "blockchain_proof" && <BlockchainProofPage />}
           {currentPage === "wallet" && <WalletPage />}
           {currentPage === "impact" && <ImpactPage />}
           {currentPage === "account" && <AccountPage />}
