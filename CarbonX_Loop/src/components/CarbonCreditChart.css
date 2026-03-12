@@ -1,33 +1,20 @@
 /* ===== Carbon Credit Price Chart ===== */
 .cc-chart-card {
-  background: linear-gradient(135deg, #0c1f14 0%, #102a1a 50%, #0a1e12 100%);
+  background: var(--white);
   border-radius: var(--radius-2xl);
-  border: 1px solid rgba(19, 236, 109, 0.15);
+  border: 1px solid var(--slate-100);
   padding: 1.5rem;
-  color: #f0f4f2;
+  color: var(--slate-900);
   position: relative;
   overflow: hidden;
-  box-shadow:
-    0 20px 40px rgba(0, 0, 0, 0.3),
-    0 0 60px rgba(19, 236, 109, 0.04);
-  transition: box-shadow 0.3s;
+  box-shadow: var(--shadow-sm);
+  transition: background 0.3s, border-color 0.3s, box-shadow 0.3s, color 0.3s;
 }
 .cc-chart-card:hover {
-  box-shadow:
-    0 20px 50px rgba(0, 0, 0, 0.35),
-    0 0 80px rgba(19, 236, 109, 0.06);
+  box-shadow: var(--shadow-md);
 }
-
-/* Background glow effect */
-.cc-chart-card::before {
-  content: "";
-  position: absolute;
-  top: -50%;
-  right: -30%;
-  width: 300px;
-  height: 300px;
-  background: radial-gradient(circle, rgba(19, 236, 109, 0.06) 0%, transparent 70%);
-  pointer-events: none;
+.dark .cc-chart-card {
+  border-color: var(--slate-200);
 }
 
 /* Header */
@@ -43,15 +30,17 @@
 .cc-chart-title {
   font-size: 1.125rem;
   font-weight: 900;
-  color: #ffffff;
+  color: var(--slate-900);
   margin: 0 0 0.25rem;
   letter-spacing: -0.01em;
+  transition: color 0.3s;
 }
 
 .cc-chart-subtitle {
   font-size: 0.75rem;
-  color: #718b7c;
+  color: var(--slate-500);
   font-weight: 500;
+  transition: color 0.3s;
 }
 
 .cc-chart-subtitle sub {
@@ -63,16 +52,17 @@
   display: flex;
   gap: 0.25rem;
   padding: 0.2rem;
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--slate-50);
   border-radius: var(--radius-xl);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--slate-100);
+  transition: background 0.3s, border-color 0.3s;
 }
 
 .cc-range-btn {
   padding: 0.375rem 0.75rem;
   border: none;
   background: transparent;
-  color: #718b7c;
+  color: var(--slate-400);
   font-family: inherit;
   font-size: 0.75rem;
   font-weight: 700;
@@ -82,13 +72,13 @@
   letter-spacing: 0.02em;
 }
 .cc-range-btn:hover {
-  color: #9db0a5;
-  background: rgba(255, 255, 255, 0.04);
+  color: var(--slate-600);
+  background: var(--slate-100);
 }
 .cc-range-btn.active {
-  background: rgba(19, 236, 109, 0.15);
-  color: #13ec6d;
-  box-shadow: 0 0 12px rgba(19, 236, 109, 0.1);
+  background: #6366f1;
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
 }
 
 /* Chart SVG Container */
@@ -108,7 +98,7 @@
 /* Y-axis labels */
 .cc-y-label {
   font-size: 10px;
-  fill: #4a6354;
+  fill: var(--slate-400);
   font-weight: 600;
   font-family: inherit;
 }
@@ -116,45 +106,94 @@
 /* X-axis labels */
 .cc-x-label {
   font-size: 10px;
-  fill: #4a6354;
+  fill: var(--slate-400);
   font-weight: 600;
   font-family: inherit;
 }
 
 /* Grid lines */
 .cc-grid-line {
-  stroke: rgba(255, 255, 255, 0.04);
+  stroke: var(--slate-100);
   stroke-width: 1;
+  transition: stroke 0.3s;
 }
 
 /* Chart line */
 .cc-chart-line {
   fill: none;
-  stroke: #13ec6d;
+  stroke: #6366f1;
   stroke-width: 2.5;
   stroke-linecap: round;
   stroke-linejoin: round;
-  filter: drop-shadow(0 0 6px rgba(19, 236, 109, 0.3));
 }
 
 /* Area gradient fill */
 .cc-chart-area {
-  opacity: 0.8;
+  opacity: 0.9;
 }
 
 /* Current price dot */
 .cc-price-dot-outer {
-  fill: rgba(19, 236, 109, 0.25);
+  fill: rgba(99, 102, 241, 0.2);
   animation: priceDotPulse 2s ease-in-out infinite;
 }
 .cc-price-dot-inner {
-  fill: #13ec6d;
-  filter: drop-shadow(0 0 6px rgba(19, 236, 109, 0.6));
+  fill: #6366f1;
+  filter: drop-shadow(0 0 4px rgba(99, 102, 241, 0.5));
 }
 
 @keyframes priceDotPulse {
-  0%, 100% { r: 8; opacity: 0.3; }
-  50% { r: 12; opacity: 0.15; }
+  0%, 100% { r: 8; opacity: 0.25; }
+  50% { r: 12; opacity: 0.1; }
+}
+
+/* Hover hitbox circles */
+.cc-hover-dot {
+  fill: transparent;
+  cursor: pointer;
+  transition: fill 0.15s;
+}
+.cc-hover-dot:hover {
+  fill: rgba(99, 102, 241, 0.15);
+}
+
+/* Tooltip */
+.cc-tooltip {
+  pointer-events: none;
+  transition: opacity 0.15s;
+}
+.cc-tooltip-bg {
+  fill: var(--slate-900);
+  rx: 8;
+  ry: 8;
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.15));
+}
+.dark .cc-tooltip-bg {
+  fill: #1a2b21;
+}
+.cc-tooltip-price {
+  fill: #ffffff;
+  font-size: 12px;
+  font-weight: 800;
+  font-family: inherit;
+}
+.cc-tooltip-date {
+  fill: rgba(255, 255, 255, 0.6);
+  font-size: 9px;
+  font-weight: 600;
+  font-family: inherit;
+}
+.cc-tooltip-line {
+  stroke: #6366f1;
+  stroke-width: 1;
+  stroke-dasharray: 4 3;
+  opacity: 0.5;
+}
+.cc-tooltip-dot {
+  fill: #6366f1;
+  stroke: #ffffff;
+  stroke-width: 2;
+  filter: drop-shadow(0 1px 3px rgba(99, 102, 241, 0.4));
 }
 
 /* Bottom Stats Bar */
@@ -163,9 +202,10 @@
   gap: 1.5rem;
   flex-wrap: wrap;
   padding-top: 1rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  border-top: 1px solid var(--slate-100);
   position: relative;
   z-index: 2;
+  transition: border-color 0.3s;
 }
 
 .cc-stat-item {
@@ -176,9 +216,10 @@
 
 .cc-stat-label {
   font-size: 0.6875rem;
-  color: #718b7c;
+  color: var(--slate-400);
   font-weight: 600;
   white-space: nowrap;
+  transition: color 0.3s;
 }
 
 .cc-stat-value {
@@ -188,16 +229,19 @@
   white-space: nowrap;
 }
 .cc-stat-value.current {
-  color: #13ec6d;
+  color: #6366f1;
 }
 .cc-stat-value.high {
-  color: #ffffff;
+  color: var(--slate-900);
+  transition: color 0.3s;
 }
 .cc-stat-value.low {
-  color: #ffffff;
+  color: var(--slate-900);
+  transition: color 0.3s;
 }
 .cc-stat-value.volume {
-  color: #ffffff;
+  color: var(--slate-900);
+  transition: color 0.3s;
 }
 
 /* Responsive */

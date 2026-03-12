@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useCarbonPrice } from "../context/CarbonPriceContext";
 import "./CarbonCreditChart.css";
 
@@ -30,6 +30,8 @@ export default function CarbonCreditChart() {
     volume,
     ranges,
   } = useCarbonPrice();
+
+  const [hoveredIdx, setHoveredIdx] = useState(null);
 
   const { linePath, areaPath, points, yLabels, xLabels, gridLines } = useMemo(() => {
     const prices = priceHistory.map((d) => d.price);
@@ -89,6 +91,7 @@ export default function CarbonCreditChart() {
   }, [priceHistory]);
 
   const lastPoint = points[points.length - 1];
+  const innerH = CHART_H - PAD.top - PAD.bottom;
 
   return (
     <div className="cc-chart-card">
@@ -119,18 +122,19 @@ export default function CarbonCreditChart() {
           className="cc-chart-svg"
           viewBox={`0 0 ${CHART_W} ${CHART_H}`}
           preserveAspectRatio="xMidYMid meet"
+          onMouseLeave={() => setHoveredIdx(null)}
         >
           <defs>
             {/* Gradient for area fill */}
             <linearGradient id="cc-area-grad" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#13ec6d" stopOpacity="0.35" />
-              <stop offset="60%" stopColor="#13ec6d" stopOpacity="0.08" />
-              <stop offset="100%" stopColor="#13ec6d" stopOpacity="0" />
+              <stop offset="0%" stopColor="#6366f1" stopOpacity="0.2" />
+              <stop offset="50%" stopColor="#6366f1" stopOpacity="0.06" />
+              <stop offset="100%" stopColor="#6366f1" stopOpacity="0" />
             </linearGradient>
 
-            {/* Glow filter */}
+            {/* Subtle glow */}
             <filter id="cc-glow">
-              <feGaussianBlur stdDeviation="3" result="blur" />
+              <feGaussianBlur stdDeviation="2" result="blur" />
               <feMerge>
                 <feMergeNode in="blur" />
                 <feMergeNode in="SourceGraphic" />
@@ -186,8 +190,8 @@ export default function CarbonCreditChart() {
           {/* Line */}
           <path className="cc-chart-line" d={linePath} filter="url(#cc-glow)" />
 
-          {/* Current price dot */}
-          {lastPoint && (
+          {/* Current price dot (only if not hovering) */}
+          {lastPoint && hoveredIdx === null && (
             <g>
               <circle
                 className="cc-price-dot-outer"
@@ -201,6 +205,65 @@ export default function CarbonCreditChart() {
                 cy={lastPoint[1]}
                 r="4"
               />
+            </g>
+          )}
+
+          {/* Invisible hover hitbox circles for each data point */}
+          {points.map((pt, i) => (
+            <circle
+              key={i}
+              className="cc-hover-dot"
+              cx={pt[0]}
+              cy={pt[1]}
+              r="12"
+              onMouseEnter={() => setHoveredIdx(i)}
+            />
+          ))}
+
+          {/* Hover tooltip */}
+          {hoveredIdx !== null && points[hoveredIdx] && (
+            <g className="cc-tooltip">
+              {/* Vertical dashed line */}
+              <line
+                className="cc-tooltip-line"
+                x1={points[hoveredIdx][0]}
+                y1={PAD.top}
+                x2={points[hoveredIdx][0]}
+                y2={PAD.top + innerH}
+              />
+
+              {/* Highlighted dot */}
+              <circle
+                className="cc-tooltip-dot"
+                cx={points[hoveredIdx][0]}
+                cy={points[hoveredIdx][1]}
+                r="5"
+              />
+
+              {/* Tooltip box */}
+              <g transform={`translate(${
+                // Flip tooltip to left if near right edge
+                points[hoveredIdx][0] > CHART_W - 120
+                  ? points[hoveredIdx][0] - 105
+                  : points[hoveredIdx][0] + 10
+              }, ${
+                // Keep tooltip above point, but not above chart
+                Math.max(PAD.top, points[hoveredIdx][1] - 48)
+              })`}>
+                <rect
+                  className="cc-tooltip-bg"
+                  x="0"
+                  y="0"
+                  width="95"
+                  height="40"
+                />
+                <text className="cc-tooltip-price" x="10" y="18">
+                  ₹{priceHistory[hoveredIdx].price.toLocaleString("en-IN")}
+                </text>
+                <text className="cc-tooltip-date" x="10" y="32">
+                  {priceHistory[hoveredIdx].date}
+                </text>
+              </g>
             </g>
           )}
         </svg>
