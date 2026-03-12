@@ -318,85 +318,11 @@ export default function FarmerProfileDashboard({ farmer }) {
                 </div>
                 <p className="fpd-bio">{data.bio}</p>
               </div>
-              <div className="fpd-upgrade-btn-wrap">
-                <button className="btn btn-primary">Upgrade Plan</button>
-              </div>
             </div>
           </section>
 
           {/* ===== Tier Card ===== */}
-          <section
-            className="fpd-tier-card animate-fade-in"
-            style={{ animationDelay: "0.1s" }}
-          >
-            <div className="fpd-tier-bg-icon">
-              <span
-                className="material-symbols-outlined"
-                style={{ fontSize: "5rem", color: "var(--primary)" }}
-              >
-                analytics
-              </span>
-            </div>
-            <div className="fpd-tier-header">
-              <div>
-                <h3 className="fpd-tier-title">
-                  <span
-                    className="material-symbols-outlined"
-                    style={{ color: "var(--primary)" }}
-                  >
-                    stars
-                  </span>
-                  Level {data.tier.level}: {data.tier.name}
-                </h3>
-                <p className="fpd-tier-subtitle">
-                  Progressing towards {data.tier.nextStatus} status
-                </p>
-              </div>
-              <div className="fpd-tier-progress-label">
-                <span className="fpd-tier-pct">{data.tier.progress}%</span>
-                <span className="fpd-tier-pct-sub">to next level</span>
-              </div>
-            </div>
-
-            <div className="fpd-tier-body">
-              <div className="progress-bar">
-                <div
-                  className="progress-bar-fill"
-                  style={{ width: `${data.tier.progress}%` }}
-                ></div>
-              </div>
-              <div className="fpd-steps-grid">
-                {data.steps.map((step) => (
-                  <div
-                    key={step.num}
-                    className={`fpd-step ${step.completed ? "completed" : ""} ${step.isNext ? "next" : ""}`}
-                  >
-                    <div
-                      className={`fpd-step-icon ${step.completed ? "bg-primary" : ""}`}
-                    >
-                      <span
-                        className="material-symbols-outlined"
-                        style={{
-                          fontSize: "0.875rem",
-                          color: step.completed
-                            ? "var(--white)"
-                            : "var(--slate-500)",
-                        }}
-                      >
-                        {step.completed ? "check" : "history_edu"}
-                      </span>
-                    </div>
-                    <div>
-                      <p className="fpd-step-label">
-                        {step.isNext ? "Next Action" : `Step ${step.num}`}
-                      </p>
-                      <p className="fpd-step-name">{step.label}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </section>
+    
 
           {/* ===== Portfolio & Revenue Row ===== */}
           <div
@@ -500,87 +426,6 @@ export default function FarmerProfileDashboard({ farmer }) {
           </div>
 
           {/* ===== Active Land Assets ===== */}
-          <section
-            className="fpd-land-section animate-fade-in"
-            style={{ animationDelay: "0.3s" }}
-          >
-            <div className="fpd-land-header">
-              <div>
-                <h3 className="fpd-land-title">Active Land Assets</h3>
-                <p className="fpd-land-subtitle">
-                  Managing {totalAcres} total registered acres
-                </p>
-              </div>
-              <button
-                className="btn btn-dark"
-                onClick={() => setShowModal(true)}
-              >
-                <span
-                  className="material-symbols-outlined"
-                  style={{ fontSize: "0.875rem" }}
-                >
-                  add_circle
-                </span>
-                Register Parcel
-              </button>
-            </div>
-            <div className="fpd-parcels-grid">
-              {parcels.map((parcel, i) => (
-                <div className="fpd-parcel-card" key={i}>
-                  <div
-                    className="fpd-parcel-img"
-                    style={{ backgroundImage: `url('${parcel.image}')` }}
-                  />
-                  <div className="fpd-parcel-body">
-                    <div>
-                      <div className="fpd-parcel-top">
-                        <h4 className="fpd-parcel-name">{parcel.name}</h4>
-                        <span
-                          className={`badge ${parcel.status === "high-yield" ? "badge-green" : "badge-orange"}`}
-                        >
-                          {parcel.badge}
-                        </span>
-                      </div>
-                      <p className="fpd-parcel-meta">
-                        {parcel.acres} Acres • {parcel.crop}
-                      </p>
-                    </div>
-                    <div
-                      className={`fpd-suggestion ${parcel.status === "pending" ? "pending" : ""}`}
-                    >
-                      <div className="fpd-suggestion-left">
-                        <span
-                          className="material-symbols-outlined"
-                          style={{
-                            fontSize: "0.875rem",
-                            fontWeight: 700,
-                            color:
-                              parcel.status === "pending"
-                                ? "var(--orange-500)"
-                                : "var(--primary)",
-                          }}
-                        >
-                          {parcel.suggestionIcon}
-                        </span>
-                        <span className="fpd-suggestion-text">
-                          {parcel.suggestion}
-                        </span>
-                      </div>
-                      <span
-                        className="material-symbols-outlined fpd-suggestion-arrow"
-                        style={{
-                          fontSize: "0.875rem",
-                          color: "var(--slate-400)",
-                        }}
-                      >
-                        chevron_right
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </section>
         </div>
       </main>
 
@@ -737,7 +582,6 @@ export default function FarmerProfileDashboard({ farmer }) {
                   />
                 </div>
               </div>
-
               {/* Soil Type */}
               <div className="fpd-form-group">
                 <label className="fpd-form-label">

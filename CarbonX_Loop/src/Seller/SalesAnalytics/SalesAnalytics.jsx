@@ -63,11 +63,11 @@ export default function SalesAnalytics({ data: propData }) {
         {
           label: "Total Revenue",
           value:
-            "$" +
+            "₹" +
             transactions
               .reduce((sum, t) => sum + (Number(t.amount) || 0), 0)
               .toLocaleString(),
-          unit: "USD",
+          unit: "INR",
           change: "+—",
           color: "var(--primary)",
         },
@@ -89,8 +89,8 @@ export default function SalesAnalytics({ data: propData }) {
         },
         {
           label: "Total Revenue",
-          value: "$4,800",
-          unit: "USD",
+          value: "₹4,800",
+          unit: "INR",
           change: "+18.5%",
           color: "var(--primary)",
         },
@@ -100,7 +100,7 @@ export default function SalesAnalytics({ data: propData }) {
     ? transactions.slice(0, 5).map((t) => ({
         buyer: t.buyer_name,
         credits: t.credits,
-        amount: "$" + Number(t.amount).toLocaleString(),
+        amount: "₹" + Number(t.amount).toLocaleString(),
         date: new Date(t.transaction_date).toLocaleDateString("en-US", {
           month: "short",
           day: "numeric",
@@ -112,21 +112,21 @@ export default function SalesAnalytics({ data: propData }) {
         {
           buyer: "GreenTech Corp",
           credits: 120,
-          amount: "$640",
+          amount: "₹640",
           date: "Mar 1, 2024",
           status: "Completed",
         },
         {
           buyer: "EcoVentures Ltd",
           credits: 80,
-          amount: "$428",
+          amount: "₹428",
           date: "Feb 28, 2024",
           status: "Completed",
         },
         {
           buyer: "CleanAir Fund",
           credits: 200,
-          amount: "$1,060",
+          amount: "₹1,060",
           date: "Feb 25, 2024",
           status: "Pending",
         },

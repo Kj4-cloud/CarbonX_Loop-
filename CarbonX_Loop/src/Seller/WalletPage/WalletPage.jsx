@@ -16,6 +16,7 @@ export default function SellerWalletPage() {
   const [copied, setCopied] = useState(false);
   const [salesHistory, setSalesHistory] = useState([]);
   const [salesLoading, setSalesLoading] = useState(true);
+  const [visibleSalesCount, setVisibleSalesCount] = useState(5);
 
   const showToast = useCallback((message, isError = false) => {
     setToast({ message, isError });
@@ -39,9 +40,11 @@ export default function SellerWalletPage() {
             credits_purchased,
             farmer_wallet_address,
             order_id,
+            created_at,
             farmer_projects ( project_name )
           `)
-          .eq("farmer_id", user.id);
+          .eq("farmer_id", user.id)
+          .order("created_at", { ascending: false });
 
         if (itemsErr || !items || items.length === 0) {
           setSalesHistory([]);
@@ -66,7 +69,7 @@ export default function SellerWalletPage() {
           }
         }
 
-        // Step 3: Merge and sort newest → oldest
+        // Step 3: Merge and ensure descending sort
         const merged = items.map((item) => ({
           ...item,
           orders: ordersMap[item.order_id] || null,
@@ -75,14 +78,14 @@ export default function SellerWalletPage() {
         console.log("DEBUG: Merged items before sort:", merged);
 
         merged.sort((a, b) => {
-          const dateA = a.orders?.created_at ? new Date(a.orders.created_at).getTime() : 0;
-          const dateB = b.orders?.created_at ? new Date(b.orders.created_at).getTime() : 0;
+          const dateA = new Date(a.created_at || a.orders?.created_at || 0).getTime();
+          const dateB = new Date(b.created_at || b.orders?.created_at || 0).getTime();
           
           if (dateA === 0 || dateB === 0) {
             console.warn("DEBUG: Missing created_at for sorting!", { a, b, dateA, dateB });
           }
 
-          return dateB - dateA; // newest first
+          return dateB - dateA; // newest first (descending)
         });
 
         console.log("DEBUG: Merged items after sort:", merged);
@@ -391,7 +394,7 @@ export default function SellerWalletPage() {
             </div>
           ) : (
             <div className="flex flex-col gap-2">
-              {salesHistory.map((item) => {
+              {salesHistory.slice(0, visibleSalesCount).map((item) => {
                 const itemTotal = item.quantity * item.price_per_credit;
                 const projectName = item.farmer_projects?.project_name || "Carbon Credits";
                 const orderDate = item.orders?.created_at ? new Date(item.orders.created_at) : null;
@@ -452,6 +455,28 @@ export default function SellerWalletPage() {
                   </div>
                 );
               })}
+
+              {/* Show More / Show Less Buttons */}
+              {salesHistory.length > 5 && (
+                <div className="mt-2 flex items-center justify-center gap-4 border-t border-[#e3e8e5] pt-4">
+                  {visibleSalesCount < salesHistory.length && (
+                    <button
+                      onClick={() => setVisibleSalesCount((prev) => prev + 5)}
+                      className="text-[#13ec6d] font-bold text-sm bg-transparent border-none cursor-pointer hover:underline flex items-center gap-1"
+                    >
+                      Show More <span className="material-symbols-outlined" style={{ fontSize: "1rem" }}>expand_more</span>
+                    </button>
+                  )}
+                  {visibleSalesCount > 5 && (
+                    <button
+                      onClick={() => setVisibleSalesCount(5)}
+                      className="text-[#718b7c] font-bold text-sm bg-transparent border-none cursor-pointer hover:underline flex items-center gap-1"
+                    >
+                      Show Less <span className="material-symbols-outlined" style={{ fontSize: "1rem" }}>expand_less</span>
+                    </button>
+                  )}
+                </div>
+              )}
             </div>
           )}
         </div>

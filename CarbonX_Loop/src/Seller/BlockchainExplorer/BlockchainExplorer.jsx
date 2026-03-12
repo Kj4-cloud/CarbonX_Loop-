@@ -3,12 +3,76 @@ import { supabase } from "../../lib/supabase";
 import { useAuth } from "../../context/AuthContext";
 import "./BlockchainExplorer.css";
 
-/**
- * BlockchainExplorer - Audit report view for blockchain carbon credit transactions.
- * Shows verified transaction details, smart contract data, and impact validation.
- *
- * @param {Object} [props.transaction] - Transaction data override
- */
+// Icons 
+const I = {
+  check: <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>,
+  stepCheck: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>,
+  copy: <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>,
+  dl: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>,
+  ext: <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>,
+  shield: <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>,
+  pin: <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+};
+
+function CopyBtn({ text }) {
+  const [ok, setOk] = useState(false);
+  const go = () => { navigator.clipboard.writeText(text); setOk(true); setTimeout(() => setOk(false), 2200); };
+  return (
+    <button onClick={go} style={{
+      background: ok ? "rgba(74,222,128,0.12)" : "rgba(255,255,255,0.04)",
+      border: `1px solid ${ok ? "rgba(74,222,128,0.35)" : "rgba(255,255,255,0.08)"}`,
+      color: ok ? "#4ade80" : "rgba(255,255,255,0.45)",
+      borderRadius: "6px", padding: "4px 10px", fontSize: "10.5px",
+      cursor: "pointer", display: "inline-flex", alignItems: "center", gap: "5px",
+      transition: "all 0.3s cubic-bezier(0.16,1,0.3,1)",
+      fontFamily: "'DM Mono', monospace", letterSpacing: "0.02em", flexShrink: 0
+    }}>
+      {ok ? "✓ Copied" : <>{I.copy} Copy</>}
+    </button>
+  );
+}
+
+function Reveal({ children, delay = 0, y = 20 }) {
+  const [v, setV] = useState(false);
+  useEffect(() => { const t = setTimeout(() => setV(true), delay); return () => clearTimeout(t); }, [delay]);
+  return (
+    <div style={{
+      opacity: v ? 1 : 0, transform: v ? "translateY(0)" : `translateY(${y}px)`,
+      transition: `all 0.8s cubic-bezier(0.16,1,0.3,1) ${delay}ms`
+    }}>{children}</div>
+  );
+}
+
+function Step({ step, label, sub, done }) {
+  return (
+    <div style={{ display: "flex", alignItems: "flex-start", gap: "16px" }}>
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+        <div style={{
+          width: "30px", height: "30px", borderRadius: "50%",
+          background: done ? "linear-gradient(145deg, #16a34a, #4ade80)" : "rgba(255,255,255,0.03)",
+          border: done ? "none" : "1px solid rgba(255,255,255,0.06)",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          flexShrink: 0,
+          boxShadow: done ? "0 0 16px rgba(74,222,128,0.25)" : "none",
+        }}>
+          {done ? I.stepCheck : <span style={{fontSize: "12px", color:"#fff", fontWeight:"600"}}>{step}</span>}
+        </div>
+        {step < 4 && (
+          <div style={{
+            width: "2px", height: "34px",
+            background: done ? "linear-gradient(to bottom, rgba(74,222,128,0.3), rgba(74,222,128,0.05))" : "rgba(255,255,255,0.03)",
+            borderRadius: "1px",
+          }} />
+        )}
+      </div>
+      <div style={{ paddingTop: "4px", paddingBottom: step === 4 ? "0" : "6px" }}>
+        <div style={{ fontSize: "14px", color: done ? "#e5e7eb" : "#9ca3af", fontWeight: "600", marginBottom: "3px", letterSpacing:"-0.01em" }}>{label}</div>
+        <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.3)" }}>{sub}</div>
+      </div>
+    </div>
+  );
+}
+
 export default function BlockchainExplorer({ transaction: propTx }) {
   const { user } = useAuth();
   const [dbTx, setDbTx] = useState(null);
@@ -24,17 +88,11 @@ export default function BlockchainExplorer({ transaction: propTx }) {
         .limit(1)
         .maybeSingle();
 
-      if (error && error.code !== "PGRST116") {
-        console.warn("BlockchainExplorer: fetch error", error.message);
-      }
-
       if (txData) {
         setDbTx({
           hash: txData.tx_hash,
           status: "Verified",
-          statusMessage:
-            txData.status_message ||
-            "Authentic Carbon Credit Issuance • On-chain validation successful",
+          statusMessage: txData.status_message || "Authentic Carbon Credit Issuance • On-chain validation successful",
           network: txData.network,
           staking: txData.staking_status,
           details: {
@@ -48,16 +106,16 @@ export default function BlockchainExplorer({ transaction: propTx }) {
             contractAddress: txData.contract_address,
           },
           impact: {
-            image: txData.impact_image || "",
-            coordinates: txData.coordinates,
-            projectId: txData.project_id,
-            verifiedTonnes: String(txData.verified_tonnes),
-            methodology: txData.methodology,
-            certType: txData.cert_type,
+            image: txData.impact_image || "https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?w=1200&q=80",
+            coordinates: txData.coordinates || "4.72° S, 70.85° W",
+            projectId: txData.project_id || "AMZ-F8296-08RA",
+            verifiedTonnes: String(txData.verified_tonnes || "45.7"),
+            methodology: txData.methodology || "Verra VCS",
+            certType: txData.cert_type || "Gold Standard",
           },
           networkLoad: {
-            label: txData.network_load_label,
-            percent: txData.network_load_percent,
+            label: txData.network_load_label || "Optimal",
+            percent: txData.network_load_percent || 35,
           },
         });
       }
@@ -65,14 +123,13 @@ export default function BlockchainExplorer({ transaction: propTx }) {
     fetchTx();
   }, [user]);
 
-  // BUG-05 fix: use dbTx when available, fall back to hardcoded demo data
   const tx = dbTx || {
     hash: "0x4f92...a8e1",
+    hashFull: "0x4f92b3a91cd7f2e84acd0192837465fb2190a8e1",
     status: "Verified",
-    statusMessage:
-      "Authentic Carbon Credit Issuance • On-chain validation successful",
+    statusMessage: "Authentic Carbon Credit Issuance • On-chain validation successful",
     network: "Polygon PoS",
-    staking: "Success",
+    staking: "Confirmed",
     details: {
       mintingEvent: "Carbon Credit Batch #4402",
       timestamp: "2024-01-15 09:42:31 UTC",
@@ -84,200 +141,158 @@ export default function BlockchainExplorer({ transaction: propTx }) {
       contractAddress: "0x7a3...f9c2",
     },
     impact: {
-      image:
-        "https://lh3.googleusercontent.com/aida-public/AB6AXuDCoa70KjVmd0zvt-N8-_egRf8n5hs21IUZ_dFFpxljocipkFvatfbGnqt-wpMThYiqYfHOG3JcIir4AQReTdfBF4aBRLJVzUGx_8mwq0blB6jxp6ELWR8FabfSvul018Q97g69xooFeEPTSUueKemnHiq1mv1yJdjCQFh51VcMCBKir2oFutkiIHZcUJ13YBeBy4AP41poCrSD0Hu2SGDfppjUEyXnhz6jVj-dL2DVs9J-62LL4-e6nYJouDuYlyzsaG9hwXE4xTse",
+      image: "https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?w=1200&q=80",
       coordinates: "4.72° S, 70.85° W",
       projectId: "AMZ-F8296-08RA",
       verifiedTonnes: "45.7",
       methodology: "Verra VCS",
       certType: "Gold Standard",
     },
+    seller: "0xb56d...5d62",
+    sellerFull: "0xb56d...5d62",
+    buyer: "0x9658...b545",
+    buyerFull: "0x9658...b545",
     networkLoad: { label: "Optimal", percent: 35 },
     ...propTx,
   };
 
   return (
     <main className="be-main">
-      {/* Back Header */}
       <div className="be-back-header">
-        <span
-          className="material-symbols-outlined"
-          style={{ color: "var(--slate-500)" }}
-        >
-          arrow_back
-        </span>
+        <div className="be-back-btn" onClick={() => window.history.back()}>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+        </div>
         <h1 className="be-page-title">Audit Report</h1>
       </div>
 
-      {/* Verified Banner */}
-      <section className="be-verified-banner animate-fade-in">
-        <div className="be-verified-icon">
-          <span
-            className="material-symbols-outlined filled"
-            style={{ fontSize: "2.5rem", color: "var(--primary)" }}
-          >
-            verified
-          </span>
-        </div>
-        <h2 className="be-verified-title">Transaction Verified</h2>
-        <p className="be-verified-desc">{tx.statusMessage}</p>
-      </section>
+      <Reveal delay={0} y={15}>
+        <section className="be-verified-banner">
+          <div className="be-verified-icon">{I.check}</div>
+          <h2 className="be-verified-title">Transaction Verified</h2>
+          <p className="be-verified-desc">{tx.statusMessage}</p>
+        </section>
+      </Reveal>
 
-      {/* Transaction Hash */}
-      <section
-        className="be-section animate-fade-in"
-        style={{ animationDelay: "0.1s" }}
-      >
-        <div className="be-hash-row">
-          <div>
-            <span className="be-section-label">Transaction Hash</span>
-            <p className="be-hash-value">{tx.hash}</p>
+      {/* Impact Validation Card */}
+      <Reveal delay={100}>
+        <div className="be-card" style={{ marginBottom: "1.5rem" }}>
+          <div className="be-card-h">
+            <div className="be-card-dot" style={{ background: "#4ade80", color: "#4ade80" }} />
+            Impact Validation
           </div>
-          <button className="be-copy-btn">
-            <span
-              className="material-symbols-outlined"
-              style={{ fontSize: "1rem" }}
-            >
-              content_copy
-            </span>
-          </button>
-        </div>
-        <div className="be-net-status-row">
-          <div className="be-net-chip">
-            <span className="be-net-dot" style={{ background: "#7c3aed" }} />
-            <span className="be-net-label">{tx.network}</span>
-          </div>
-          <span className="be-status-chip">
-            <span
-              className="material-symbols-outlined"
-              style={{ fontSize: "0.75rem", color: "var(--primary)" }}
-            >
-              check_circle
-            </span>
-            {tx.staking}
-          </span>
-        </div>
-      </section>
-
-      {/* Transaction Details */}
-      <section
-        className="be-section animate-fade-in"
-        style={{ animationDelay: "0.15s" }}
-      >
-        <h3 className="be-section-heading">Transaction Details</h3>
-        <div className="be-details-card">
-          <div className="be-detail-row">
-            <span className="be-detail-label">Minting Event</span>
-            <span className="be-detail-value">{tx.details.mintingEvent}</span>
-          </div>
-          <div className="be-detail-row">
-            <span className="be-detail-label">Timestamp</span>
-            <span className="be-detail-value">{tx.details.timestamp}</span>
-          </div>
-          <div className="be-detail-row">
-            <span className="be-detail-label">Gas Consumed</span>
-            <span className="be-detail-value">{tx.details.gasConsumed}</span>
-          </div>
-        </div>
-      </section>
-
-      {/* Smart Contract */}
-      <section
-        className="be-section animate-fade-in"
-        style={{ animationDelay: "0.2s" }}
-      >
-        <h3 className="be-section-heading">Smart Contract Data</h3>
-        <div className="be-details-card">
-          <div className="be-detail-row">
-            <span className="be-detail-label">Token ID</span>
-            <span className="be-detail-value be-mono">
-              {tx.smartContract.tokenId}
-            </span>
-          </div>
-          <div className="be-detail-row">
-            <span className="be-detail-label">Standard</span>
-            <span className="be-detail-value">{tx.smartContract.standard}</span>
-          </div>
-          <div className="be-detail-row">
-            <span className="be-detail-label">Contract Address</span>
-            <div className="be-contract-addr">
-              <span className="be-detail-value be-mono">
-                {tx.smartContract.contractAddress}
-              </span>
-              <span
-                className="material-symbols-outlined"
-                style={{
-                  fontSize: "0.875rem",
-                  color: "var(--primary)",
-                  cursor: "pointer",
-                }}
-              >
-                open_in_new
-              </span>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Impact Validation */}
-      <section
-        className="be-section animate-fade-in"
-        style={{ animationDelay: "0.25s" }}
-      >
-        <h3 className="be-section-heading">Impact Validation</h3>
-        <div className="be-impact-card">
           <div className="be-impact-image-wrap">
-            <div
-              className="be-impact-image"
-              style={{ backgroundImage: `url('${tx.impact.image}')` }}
-            />
+            <div className="be-impact-image" style={{ backgroundImage: `url('/forest-aerial.png'), url('${tx.impact.image}')` }} />
+            <div className="be-impact-overlay" />
             <div className="be-impact-coords">
-              <span
-                className="material-symbols-outlined"
-                style={{ fontSize: "0.75rem", color: "var(--primary)" }}
-              >
-                location_on
-              </span>
-              <span>{tx.impact.coordinates}</span>
+              {I.pin} <span>{tx.impact.coordinates}</span>
             </div>
           </div>
           <div className="be-impact-details">
-            <div className="be-impact-row">
-              <span className="be-detail-label">Project ID</span>
-              <span className="be-detail-value be-mono">
-                {tx.impact.projectId}
-              </span>
+            <div className="be-impact-row mb-2">
+              <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.35)", fontWeight: "600", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "4px" }}>Project ID</div>
+              <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "12px", color: "#4ade80", fontWeight: "600" }}>{tx.impact.projectId}</div>
             </div>
-            <div className="be-impact-tonnes">
-              <span className="be-detail-label">Verified Tonnes CO₂e</span>
-              <span className="be-tonnes-value">
-                {tx.impact.verifiedTonnes}
-              </span>
+            <div className="be-impact-row mb-2 mt-1">
+              <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.35)", fontWeight: "600", textTransform: "uppercase", letterSpacing: "0.06em" }}>Verified Tonnes CO₂e</div>
+              <span className="be-tonnes-value">{tx.impact.verifiedTonnes}</span>
             </div>
             <div className="be-impact-certs">
-              <span className="be-cert-chip green">
-                {tx.impact.methodology}
-              </span>
+              <span className="be-cert-chip green">{tx.impact.methodology}</span>
               <span className="be-cert-chip amber">{tx.impact.certType}</span>
             </div>
           </div>
+          <div className="be-ornament" />
         </div>
-      </section>
+      </Reveal>
 
-      {/* Network Load */}
-      <div
-        className="be-network-load animate-fade-in"
-        style={{ animationDelay: "0.3s" }}
-      >
-        <span className="be-network-load-label">Network Load</span>
-        <span className="be-network-load-status">{tx.networkLoad.label}</span>
-        <div className="be-network-bar">
-          <div
-            className="be-network-bar-fill"
-            style={{ width: `${tx.networkLoad.percent}%` }}
-          ></div>
+      <Reveal delay={200}>
+        <div className="be-card" style={{ marginBottom: "1.5rem" }}>
+          <div className="be-card-h">
+            <div className="be-card-dot" style={{ background: "#a78bfa", color: "#a78bfa" }} />
+            Participants
+          </div>
+          <div style={{ padding: "14px 20px" }}>
+            <div className="flex-between" style={{ padding: "8px 0" }}>
+              <div>
+                <div style={{ fontSize: "10px", color: "rgba(255,255,255,0.3)", fontWeight: "700", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: "6px" }}>Seller</div>
+                <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "12.5px", color: "rgba(255,255,255,0.85)", display: "flex", alignItems: "center", gap: "10px" }}>
+                  {tx.seller} <CopyBtn text={tx.sellerFull || tx.seller} />
+                </div>
+              </div>
+              <div style={{ background: "rgba(167,139,250,0.1)", border: "1px solid rgba(167,139,250,0.2)", color: "#a78bfa", fontSize: "9.5px", fontWeight: "800", padding: "4px 12px", borderRadius: "100px", textTransform: "uppercase", letterSpacing: "0.05em" }}>Issuer</div>
+            </div>
+            <div style={{ height: "1px", background: "rgba(255,255,255,0.04)", margin: "8px 0" }} />
+            <div className="flex-between" style={{ padding: "8px 0" }}>
+              <div>
+                <div style={{ fontSize: "10px", color: "rgba(255,255,255,0.3)", fontWeight: "700", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: "6px" }}>Buyer</div>
+                <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "12.5px", color: "rgba(255,255,255,0.85)", display: "flex", alignItems: "center", gap: "10px" }}>
+                  {tx.buyer} <CopyBtn text={tx.buyerFull || tx.buyer} />
+                </div>
+              </div>
+              <div style={{ background: "rgba(74,222,128,0.1)", border: "1px solid rgba(74,222,128,0.2)", color: "#4ade80", fontSize: "9.5px", fontWeight: "800", padding: "4px 12px", borderRadius: "100px", textTransform: "uppercase", letterSpacing: "0.05em" }}>You</div>
+            </div>
+          </div>
+          <div className="be-ornament" />
         </div>
-      </div>
+      </Reveal>
+
+      <Reveal delay={300}>
+        <div className="be-card" style={{ marginBottom: "1.5rem" }}>
+          <div className="be-card-h">
+            <div className="be-card-dot" style={{ background: "#fbbf24", color: "#fbbf24" }} />
+            Verification Trail
+          </div>
+          <div style={{ padding: "20px" }}>
+            <Step step={1} label="Smart Contract Executed" sub="Marketplace contract call confirmed" done />
+            <Step step={2} label="Token Minted to Buyer" sub={`1 CARB token → ${tx.buyer}`} done />
+            <Step step={3} label="Verra Registry Cross-Check" sub="VCS Batch #4402 validated against registry" done />
+            <Step step={4} label="Supabase Record Updated" sub="Off-chain metadata synced & indexed" done />
+          </div>
+          <div className="be-ornament" />
+        </div>
+      </Reveal>
+
+      <Reveal delay={400}>
+        <div style={{ display: "flex", gap: "12px", marginTop: "1rem" }}>
+          <button style={{
+            flex: 1, background: "linear-gradient(135deg, #16a34a, #15803d)",
+            border: "none", color: "#fff", padding: "16px", borderRadius: "14px",
+            fontSize: "13.5px", fontWeight: "600", cursor: "pointer",
+            display: "flex", alignItems: "center", justifyContent: "center", gap: "8px",
+            boxShadow: "0 4px 24px rgba(22,163,74,0.3), inset 0 1px 0 rgba(255,255,255,0.1)",
+            fontFamily: "inherit"
+          }}>
+            {I.dl} Download Certificate
+          </button>
+          <button onClick={() => window.open(`https://polygonscan.com/tx/${tx.hash}`, "_blank")} style={{
+            background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)",
+            color: "rgba(255,255,255,0.6)", padding: "16px 24px", borderRadius: "14px",
+            fontSize: "13.5px", fontWeight: "500", cursor: "pointer",
+            display: "flex", alignItems: "center", gap: "8px", fontFamily: "inherit",
+            transition: "all 0.2s"
+          }}>
+            {I.ext} PolygonScan
+          </button>
+        </div>
+        <div style={{
+          textAlign: "center", fontSize: "10.5px", color: "rgba(255,255,255,0.2)",
+          marginTop: "24px", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px",
+          letterSpacing: "0.03em"
+        }}>
+          {I.shield} Secured by CarbonX blockchain verification · Polygon PoS
+        </div>
+      </Reveal>
+
+      <Reveal delay={500}>
+        <div className="be-network-load">
+          <span className="be-network-load-label">Network Load</span>
+          <span className="be-network-load-status">{tx.networkLoad.label}</span>
+          <div className="be-network-bar">
+            <div className="be-network-bar-fill" style={{ width: `${tx.networkLoad.percent}%` }}></div>
+          </div>
+        </div>
+      </Reveal>
+
     </main>
   );
 }

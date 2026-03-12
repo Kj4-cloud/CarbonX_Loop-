@@ -9,6 +9,7 @@ import WalletPage from "../Buyer/WalletPage";
 import BlockchainProofPage from "../Buyer/BlockchainProofPage";
 import CheckoutPage from "../Buyer/CheckoutPage";
 import InvoicePage from "../Buyer/InvoicePage";
+import AuditReport from "../Buyer/AuditReport";
 import CartModal from "../Buyer/CartModal";
 import {
   useTheme,
@@ -81,7 +82,7 @@ export default function BuyerLayout() {
   );
 
   // Hide header + bottom nav on checkout and invoice pages
-  const showChrome = !["checkout", "invoice"].includes(currentPage);
+  const showChrome = !["checkout", "invoice", "audit_report"].includes(currentPage);
 
   return (
     <div className={isDark ? "dark" : ""} style={{ minHeight: "100dvh" }}>
@@ -114,6 +115,7 @@ export default function BuyerLayout() {
           {currentPage === "wallet" && <WalletPage />}
           {currentPage === "impact" && <ImpactPage />}
           {currentPage === "account" && <AccountPage />}
+          {currentPage === "audit_report" && <AuditReport />}
           {currentPage === "checkout" && (
             <CheckoutPage
               cart={cart}

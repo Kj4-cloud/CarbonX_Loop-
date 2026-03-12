@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, createContext, useContext, createElement } from "react";
 
 const STORAGE_KEYS = {
   theme: "carbonx_theme",
@@ -15,9 +15,10 @@ function readStorage(key, fallback) {
   }
 }
 
+/* ── Shared Theme Context ── */
+const ThemeContext = createContext(null);
 
-
-export function useTheme() {
+export function ThemeProvider({ children }) {
   const [isDark, setIsDark] = useState(() => {
     const stored = localStorage.getItem(STORAGE_KEYS.theme);
     return stored ? stored === "dark" : false;
@@ -29,7 +30,16 @@ export function useTheme() {
   }, [isDark]);
 
   const toggleTheme = useCallback(() => setIsDark((d) => !d), []);
-  return { isDark, toggleTheme };
+
+  return createElement(ThemeContext.Provider, { value: { isDark, toggleTheme } }, children);
+}
+
+export function useTheme() {
+  const ctx = useContext(ThemeContext);
+  if (!ctx) {
+    throw new Error("useTheme must be used within a <ThemeProvider>");
+  }
+  return ctx;
 }
 
 export function useFavorites() {

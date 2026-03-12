@@ -390,16 +390,17 @@
   .fpd-stats-row { grid-template-columns: 1fr 1fr; }
 }
 
+
 /* Portfolio */
 .fpd-portfolio-card {
-  background: linear-gradient(135deg, #0c1510 0%, #102a1a 50%, #0a1e12 100%);
+  background: linear-gradient(135deg, #0c1f14 0%, #102a1a 50%, #0a1e12 100%);
   padding: 1.5rem;
   border-radius: var(--radius-2xl);
   color: #f0f4f2;
   position: relative;
   box-shadow: var(--shadow-xl);
   overflow: hidden;
-  border: 1px solid rgba(19, 236, 109, 0.1);
+  border: 1px solid rgba(19, 236, 109, 0.2);
 }
 
 .fpd-portfolio-bg {
@@ -448,7 +449,7 @@
 .fpd-credits-num {
   font-size: 2.25rem;
   font-weight: 900;
-  color: #f0f4f2;
+  color: #ffffff;
 }
 
 .fpd-credits-unit {
