@@ -18,15 +18,7 @@ function CopyBtn({ text }) {
   const [ok, setOk] = useState(false);
   const go = () => { navigator.clipboard.writeText(text); setOk(true); setTimeout(() => setOk(false), 2200); };
   return (
-    <button onClick={go} style={{
-      background: ok ? "rgba(74,222,128,0.12)" : "rgba(255,255,255,0.04)",
-      border: `1px solid ${ok ? "rgba(74,222,128,0.35)" : "rgba(255,255,255,0.08)"}`,
-      color: ok ? "#4ade80" : "rgba(255,255,255,0.45)",
-      borderRadius: "6px", padding: "4px 10px", fontSize: "10.5px",
-      cursor: "pointer", display: "inline-flex", alignItems: "center", gap: "5px",
-      transition: "all 0.3s cubic-bezier(0.16,1,0.3,1)",
-      fontFamily: "'DM Mono', monospace", letterSpacing: "0.02em", flexShrink: 0
-    }}>
+    <button onClick={go} className={`be-copy-btn ${ok ? "copied" : ""}`}>
       {ok ? "✓ Copied" : <>{I.copy} Copy</>}
     </button>
   );
@@ -45,29 +37,18 @@ function Reveal({ children, delay = 0, y = 20 }) {
 
 function Step({ step, label, sub, done }) {
   return (
-    <div style={{ display: "flex", alignItems: "flex-start", gap: "16px" }}>
-      <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-        <div style={{
-          width: "30px", height: "30px", borderRadius: "50%",
-          background: done ? "linear-gradient(145deg, #16a34a, #4ade80)" : "rgba(255,255,255,0.03)",
-          border: done ? "none" : "1px solid rgba(255,255,255,0.06)",
-          display: "flex", alignItems: "center", justifyContent: "center",
-          flexShrink: 0,
-          boxShadow: done ? "0 0 16px rgba(74,222,128,0.25)" : "none",
-        }}>
-          {done ? I.stepCheck : <span style={{fontSize: "12px", color:"#fff", fontWeight:"600"}}>{step}</span>}
+    <div className="be-step-wrap">
+      <div className="be-step-col">
+        <div className={`be-step-circle ${done ? "done" : "pending"}`}>
+          {done ? I.stepCheck : <span className="be-step-num">{step}</span>}
         </div>
         {step < 4 && (
-          <div style={{
-            width: "2px", height: "34px",
-            background: done ? "linear-gradient(to bottom, rgba(74,222,128,0.3), rgba(74,222,128,0.05))" : "rgba(255,255,255,0.03)",
-            borderRadius: "1px",
-          }} />
+          <div className={`be-step-line ${done ? "done" : "pending"}`} />
         )}
       </div>
-      <div style={{ paddingTop: "4px", paddingBottom: step === 4 ? "0" : "6px" }}>
-        <div style={{ fontSize: "14px", color: done ? "#e5e7eb" : "#9ca3af", fontWeight: "600", marginBottom: "3px", letterSpacing:"-0.01em" }}>{label}</div>
-        <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.3)" }}>{sub}</div>
+      <div className="be-step-content" style={{ paddingBottom: step === 4 ? "0" : "6px" }}>
+        <div className={`be-step-label ${done ? "done" : "pending"}`}>{label}</div>
+        <div className="be-step-sub">{sub}</div>
       </div>
     </div>
   );
@@ -189,11 +170,11 @@ export default function BlockchainExplorer({ transaction: propTx }) {
           </div>
           <div className="be-impact-details">
             <div className="be-impact-row mb-2">
-              <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.35)", fontWeight: "600", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "4px" }}>Project ID</div>
-              <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "12px", color: "#4ade80", fontWeight: "600" }}>{tx.impact.projectId}</div>
+              <div className="be-impact-section-label">Project ID</div>
+              <div className="be-impact-project-id">{tx.impact.projectId}</div>
             </div>
             <div className="be-impact-row mb-2 mt-1">
-              <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.35)", fontWeight: "600", textTransform: "uppercase", letterSpacing: "0.06em" }}>Verified Tonnes CO₂e</div>
+              <div className="be-impact-tonnes-label">Verified Tonnes CO₂e</div>
               <span className="be-tonnes-value">{tx.impact.verifiedTonnes}</span>
             </div>
             <div className="be-impact-certs">
@@ -211,25 +192,25 @@ export default function BlockchainExplorer({ transaction: propTx }) {
             <div className="be-card-dot" style={{ background: "#a78bfa", color: "#a78bfa" }} />
             Participants
           </div>
-          <div style={{ padding: "14px 20px" }}>
-            <div className="flex-between" style={{ padding: "8px 0" }}>
+          <div className="be-participants-body">
+            <div className="be-participant-row">
               <div>
-                <div style={{ fontSize: "10px", color: "rgba(255,255,255,0.3)", fontWeight: "700", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: "6px" }}>Seller</div>
-                <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "12.5px", color: "rgba(255,255,255,0.85)", display: "flex", alignItems: "center", gap: "10px" }}>
+                <div className="be-participant-label">Seller</div>
+                <div className="be-participant-address">
                   {tx.seller} <CopyBtn text={tx.sellerFull || tx.seller} />
                 </div>
               </div>
-              <div style={{ background: "rgba(167,139,250,0.1)", border: "1px solid rgba(167,139,250,0.2)", color: "#a78bfa", fontSize: "9.5px", fontWeight: "800", padding: "4px 12px", borderRadius: "100px", textTransform: "uppercase", letterSpacing: "0.05em" }}>Issuer</div>
+              <div className="be-badge-issuer">Issuer</div>
             </div>
-            <div style={{ height: "1px", background: "rgba(255,255,255,0.04)", margin: "8px 0" }} />
-            <div className="flex-between" style={{ padding: "8px 0" }}>
+            <div className="be-participant-divider" />
+            <div className="be-participant-row">
               <div>
-                <div style={{ fontSize: "10px", color: "rgba(255,255,255,0.3)", fontWeight: "700", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: "6px" }}>Buyer</div>
-                <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "12.5px", color: "rgba(255,255,255,0.85)", display: "flex", alignItems: "center", gap: "10px" }}>
+                <div className="be-participant-label">Buyer</div>
+                <div className="be-participant-address">
                   {tx.buyer} <CopyBtn text={tx.buyerFull || tx.buyer} />
                 </div>
               </div>
-              <div style={{ background: "rgba(74,222,128,0.1)", border: "1px solid rgba(74,222,128,0.2)", color: "#4ade80", fontSize: "9.5px", fontWeight: "800", padding: "4px 12px", borderRadius: "100px", textTransform: "uppercase", letterSpacing: "0.05em" }}>You</div>
+              <div className="be-badge-you">You</div>
             </div>
           </div>
           <div className="be-ornament" />
@@ -253,32 +234,15 @@ export default function BlockchainExplorer({ transaction: propTx }) {
       </Reveal>
 
       <Reveal delay={400}>
-        <div style={{ display: "flex", gap: "12px", marginTop: "1rem" }}>
-          <button style={{
-            flex: 1, background: "linear-gradient(135deg, #16a34a, #15803d)",
-            border: "none", color: "#fff", padding: "16px", borderRadius: "14px",
-            fontSize: "13.5px", fontWeight: "600", cursor: "pointer",
-            display: "flex", alignItems: "center", justifyContent: "center", gap: "8px",
-            boxShadow: "0 4px 24px rgba(22,163,74,0.3), inset 0 1px 0 rgba(255,255,255,0.1)",
-            fontFamily: "inherit"
-          }}>
+        <div className="be-actions-row">
+          <button className="be-btn-download">
             {I.dl} Download Certificate
           </button>
-          <button onClick={() => window.open(`https://polygonscan.com/tx/${tx.hash}`, "_blank")} style={{
-            background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)",
-            color: "rgba(255,255,255,0.6)", padding: "16px 24px", borderRadius: "14px",
-            fontSize: "13.5px", fontWeight: "500", cursor: "pointer",
-            display: "flex", alignItems: "center", gap: "8px", fontFamily: "inherit",
-            transition: "all 0.2s"
-          }}>
+          <button className="be-btn-polygonscan" onClick={() => window.open(`https://polygonscan.com/tx/${tx.hash}`, "_blank")}>
             {I.ext} PolygonScan
           </button>
         </div>
-        <div style={{
-          textAlign: "center", fontSize: "10.5px", color: "rgba(255,255,255,0.2)",
-          marginTop: "24px", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px",
-          letterSpacing: "0.03em"
-        }}>
+        <div className="be-footer-note">
           {I.shield} Secured by CarbonX blockchain verification · Polygon PoS
         </div>
       </Reveal>

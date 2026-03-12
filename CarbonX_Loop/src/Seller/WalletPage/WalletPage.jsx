@@ -10,6 +10,7 @@ export default function SellerWalletPage() {
   const { user } = useAuth();
   const [showDeposit, setShowDeposit] = useState(false);
   const [showWithdraw, setShowWithdraw] = useState(false);
+  const [upiId, setUpiId] = useState("");
   const [amount, setAmount] = useState("");
   const [processing, setProcessing] = useState(false);
   const [toast, setToast] = useState(null);
@@ -127,6 +128,10 @@ export default function SellerWalletPage() {
 
   const handleWithdraw = async () => {
     const val = parseFloat(amount);
+    if (!upiId.trim() || !upiId.includes("@")) {
+      showToast("Enter a valid UPI ID (e.g. name@upi)", true);
+      return;
+    }
     if (!val || val <= 0) {
       showToast("Enter a valid amount", true);
       return;
@@ -139,8 +144,9 @@ export default function SellerWalletPage() {
     const result = await withdraw(val);
     setProcessing(false);
     if (result.success) {
-      showToast(`₹${val.toLocaleString("en-IN")} withdrawn!`);
+      showToast(`₹${val.toLocaleString("en-IN")} withdrawn to ${upiId}!`);
       setAmount("");
+      setUpiId("");
       setShowWithdraw(false);
     } else {
       showToast(result.error || "Withdrawal failed", true);
@@ -531,38 +537,77 @@ export default function SellerWalletPage() {
       {showWithdraw && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4 animate-fade-in"
           onClick={() => setShowWithdraw(false)}>
-          <div className="bg-white rounded-2xl max-w-sm w-full p-6 animate-slide-up" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-[#f59e0b]/10 flex items-center justify-center">
-                  <span className="material-symbols-outlined" style={{ color: "#f59e0b" }}>arrow_upward</span>
+          <div className="bg-white rounded-2xl max-w-md w-full p-0 animate-slide-up overflow-hidden" onClick={(e) => e.stopPropagation()}>
+            {/* Header with gradient */}
+            <div style={{ background: "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)" }} className="px-6 py-5 relative overflow-hidden">
+              <div className="absolute -right-6 -top-6 w-24 h-24 rounded-full opacity-20" style={{ background: "radial-gradient(circle, white, transparent)" }} />
+              <div className="flex items-center justify-between relative z-10">
+                <div className="flex items-center gap-3">
+                  <div className="w-11 h-11 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                    <span className="material-symbols-outlined text-white" style={{ fontSize: "1.4rem" }}>arrow_upward</span>
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-black text-white">Withdraw Funds</h3>
+                    <p className="text-white/70 text-xs">Transfer to your UPI account</p>
+                  </div>
                 </div>
-                <h3 className="text-lg font-black text-[#0c1510]">Withdraw Funds</h3>
+                <button onClick={() => setShowWithdraw(false)}
+                  className="w-8 h-8 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center cursor-pointer border-none text-white hover:bg-white/30 transition-colors">
+                  <span className="material-symbols-outlined" style={{ fontSize: "1.1rem" }}>close</span>
+                </button>
               </div>
-              <button onClick={() => setShowWithdraw(false)}
-                className="w-8 h-8 rounded-full bg-[#f0f4f2] flex items-center justify-center cursor-pointer border-none text-[#0c1510] hover:bg-[#e3e8e5] transition-colors">
-                <span className="material-symbols-outlined">close</span>
-              </button>
             </div>
 
-            <p className="text-sm text-[#9db0a5] mb-4">
-              Available: <span className="font-bold text-[#0c1510]">₹{Number(wallet?.balance || 0).toLocaleString("en-IN")}</span>
-            </p>
+            <div className="p-6">
+              {/* Available balance chip */}
+              <div className="flex items-center gap-2 mb-5 bg-[#f59e0b]/5 border border-[#f59e0b]/15 rounded-xl px-4 py-3">
+                <span className="material-symbols-outlined" style={{ color: "#f59e0b", fontSize: "1.1rem" }}>account_balance</span>
+                <p className="text-sm text-[#718b7c]">
+                  Available: <span className="font-black text-[#0c1510]">₹{Number(wallet?.balance || 0).toLocaleString("en-IN")}</span>
+                </p>
+              </div>
 
-            <label className="text-xs font-bold text-[#9db0a5] uppercase tracking-widest mb-2 block">Amount (₹)</label>
-            <input
-              type="number"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              placeholder="Enter amount"
-              min="1"
-              max={wallet?.balance || 0}
-              className="w-full bg-[#f6f8f7] border border-[#e3e8e5] rounded-xl py-4 px-4 text-lg font-bold text-[#0c1510] outline-none focus:ring-2 focus:ring-[#13ec6d] font-[Manrope] box-border"
-            />
+              {/* UPI ID Input */}
+              <label className="text-xs font-bold text-[#9db0a5] uppercase tracking-widest mb-2 block">UPI ID</label>
+              <div className="relative mb-4">
+                <div className="absolute left-4 top-1/2 -translate-y-1/2 flex items-center gap-2 pointer-events-none">
+                  <span className="material-symbols-outlined" style={{ fontSize: "1.2rem", color: "#f59e0b" }}>account_balance_wallet</span>
+                </div>
+                <input
+                  type="text"
+                  value={upiId}
+                  onChange={(e) => setUpiId(e.target.value)}
+                  placeholder="yourname@upi"
+                  className="w-full bg-[#f6f8f7] border border-[#e3e8e5] rounded-xl py-4 pl-12 pr-4 text-base font-bold text-[#0c1510] outline-none focus:ring-2 focus:ring-[#f59e0b] focus:border-[#f59e0b] font-[Manrope] box-border transition-all"
+                />
+              </div>
 
-            <div className="mt-6">
-              <button onClick={handleWithdraw} disabled={processing}
-                className="w-full bg-[#f59e0b] hover:bg-[#d97706] text-[#0c1510] font-black py-4 rounded-xl transition-colors cursor-pointer border-none font-[Manrope] text-base disabled:opacity-50 disabled:cursor-not-allowed">
+              {/* Amount Input */}
+              <label className="text-xs font-bold text-[#9db0a5] uppercase tracking-widest mb-2 block">Amount (₹)</label>
+              <div className="relative mb-4">
+                <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none">
+                  <span className="font-black text-[#f59e0b] text-lg">₹</span>
+                </div>
+                <input
+                  type="number"
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
+                  placeholder="Enter amount"
+                  min="1"
+                  max={wallet?.balance || 0}
+                  className="w-full bg-[#f6f8f7] border border-[#e3e8e5] rounded-xl py-4 pl-10 pr-4 text-lg font-bold text-[#0c1510] outline-none focus:ring-2 focus:ring-[#f59e0b] focus:border-[#f59e0b] font-[Manrope] box-border transition-all"
+                />
+              </div>
+
+              {/* Info note */}
+              <div className="flex items-start gap-2 bg-[#fffbeb] border border-[#f59e0b]/15 rounded-lg px-3 py-2.5 mb-5">
+                <span className="material-symbols-outlined" style={{ fontSize: "1rem", color: "#f59e0b", marginTop: "1px" }}>info</span>
+                <p className="text-xs text-[#92700c] leading-relaxed">Funds will be transferred to the UPI ID provided. Please double-check before confirming.</p>
+              </div>
+
+              <button onClick={handleWithdraw} disabled={processing || !upiId.trim()}
+                className="w-full bg-[#f59e0b] hover:bg-[#d97706] text-[#0c1510] font-black py-4 rounded-xl transition-colors cursor-pointer border-none font-[Manrope] text-base disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+                <span className="material-symbols-outlined" style={{ fontSize: "1.2rem" }}>{processing ? "progress_activity" : "send"}</span>
                 {processing ? "Processing..." : "Confirm Withdrawal"}
               </button>
             </div>

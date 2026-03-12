@@ -66,6 +66,70 @@ export default function ProjectSubmission() {
   const [landIdVerifying, setLandIdVerifying] = useState(false);
   const [landIdError, setLandIdError] = useState("");
 
+  // ---- OTP Verification State ----
+  const [showOtpModal, setShowOtpModal] = useState(false);
+  const [generatedOtp, setGeneratedOtp] = useState("");
+  const [otpInput, setOtpInput] = useState(["" , "", "", "", "", ""]);
+  const [otpError, setOtpError] = useState("");
+  const [otpVerifying, setOtpVerifying] = useState(false);
+  const [otpToast, setOtpToast] = useState(null);
+  const otpRefs = [useRef(null), useRef(null), useRef(null), useRef(null), useRef(null), useRef(null)];
+
+  const generateOtp = () => {
+    const otp = String(Math.floor(100000 + Math.random() * 900000));
+    setGeneratedOtp(otp);
+    setOtpToast(otp);
+    setTimeout(() => setOtpToast(null), 6000);
+    return otp;
+  };
+
+  const handleOtpChange = (index, value) => {
+    if (!/^\d*$/.test(value)) return;
+    const newOtp = [...otpInput];
+    newOtp[index] = value.slice(-1);
+    setOtpInput(newOtp);
+    setOtpError("");
+    if (value && index < 5) {
+      otpRefs[index + 1].current?.focus();
+    }
+  };
+
+  const handleOtpKeyDown = (index, e) => {
+    if (e.key === "Backspace" && !otpInput[index] && index > 0) {
+      otpRefs[index - 1].current?.focus();
+    }
+  };
+
+  const handleOtpPaste = (e) => {
+    e.preventDefault();
+    const pasted = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
+    if (pasted.length === 6) {
+      setOtpInput(pasted.split(""));
+      otpRefs[5].current?.focus();
+    }
+  };
+
+  const verifyOtp = () => {
+    const entered = otpInput.join("");
+    if (entered.length < 6) {
+      setOtpError("Please enter all 6 digits");
+      return;
+    }
+    setOtpVerifying(true);
+    setTimeout(() => {
+      if (entered === generatedOtp) {
+        setLandIdVerified(true);
+        setLandIdError("");
+        setShowOtpModal(false);
+        setOtpInput(["", "", "", "", "", ""]);
+        setGeneratedOtp("");
+      } else {
+        setOtpError("Invalid OTP. Please try again.");
+      }
+      setOtpVerifying(false);
+    }, 800);
+  };
+
   // Fetch farmer's projects
   useEffect(() => {
     if (!user) return;
@@ -304,6 +368,10 @@ export default function ProjectSubmission() {
     setLandId("");
     setLandIdVerified(false);
     setLandIdError("");
+    setShowOtpModal(false);
+    setOtpInput(["", "", "", "", "", ""]);
+    setGeneratedOtp("");
+    setOtpError("");
     setTimeout(() => setShowSuccess(false), 3000);
   };
 
@@ -570,6 +638,186 @@ export default function ProjectSubmission() {
         </div>
       )}
 
+      {/* OTP Toast Pop-up */}
+      {otpToast && (
+        <div style={{
+          position: "fixed", top: "1.5rem", right: "1.5rem", zIndex: 300,
+          background: "linear-gradient(135deg, #0c1f14 0%, #102a1a 100%)",
+          border: "1px solid rgba(19, 236, 109, 0.3)",
+          borderRadius: "1rem", padding: "1rem 1.5rem",
+          boxShadow: "0 20px 60px rgba(0,0,0,0.4), 0 0 40px rgba(19,236,109,0.15)",
+          display: "flex", alignItems: "center", gap: "0.75rem",
+          animation: "slideDown 0.5s cubic-bezier(0.16,1,0.3,1)",
+          maxWidth: "360px",
+        }}>
+          <div style={{
+            width: "40px", height: "40px", borderRadius: "50%",
+            background: "rgba(19,236,109,0.15)",
+            display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+          }}>
+            <span className="material-symbols-outlined" style={{ color: "#13ec6d", fontSize: "1.25rem" }}>sms</span>
+          </div>
+          <div>
+            <p style={{ color: "#9db0a5", fontSize: "0.7rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "0.25rem" }}>Demo OTP</p>
+            <p style={{ color: "#fff", fontSize: "1.5rem", fontWeight: 900, fontFamily: "'DM Mono', monospace", letterSpacing: "0.25em" }}>{otpToast}</p>
+          </div>
+        </div>
+      )}
+
+      {/* OTP Verification Modal */}
+      {showOtpModal && (
+        <div style={{
+          position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)",
+          backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)",
+          zIndex: 200, display: "flex", alignItems: "center", justifyContent: "center", padding: "1rem",
+        }} onClick={() => { setShowOtpModal(false); setOtpInput(["","","","","",""]); setOtpError(""); }}>
+          <div style={{
+            background: "#fff", borderRadius: "1.25rem", maxWidth: "420px", width: "100%",
+            overflow: "hidden", animation: "slideDown 0.4s cubic-bezier(0.16,1,0.3,1)",
+            boxShadow: "0 25px 80px rgba(0,0,0,0.15)",
+          }} onClick={(e) => e.stopPropagation()}>
+            {/* Modal Header */}
+            <div style={{
+              background: "linear-gradient(135deg, #13ec6d 0%, #0aaf4f 100%)",
+              padding: "1.5rem", position: "relative", overflow: "hidden",
+            }}>
+              <div style={{ position: "absolute", right: "-20px", top: "-20px", width: "80px", height: "80px", borderRadius: "50%", background: "rgba(255,255,255,0.15)" }} />
+              <div style={{ position: "absolute", left: "-10px", bottom: "-10px", width: "50px", height: "50px", borderRadius: "50%", background: "rgba(255,255,255,0.08)" }} />
+              <div style={{ position: "relative", zIndex: 1, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+                  <div style={{
+                    width: "44px", height: "44px", borderRadius: "50%",
+                    background: "rgba(255,255,255,0.2)", backdropFilter: "blur(4px)",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                  }}>
+                    <span className="material-symbols-outlined" style={{ color: "#fff", fontSize: "1.4rem" }}>lock</span>
+                  </div>
+                  <div>
+                    <h3 style={{ color: "#fff", fontSize: "1.125rem", fontWeight: 900, margin: 0 }}>OTP Verification</h3>
+                    <p style={{ color: "rgba(255,255,255,0.7)", fontSize: "0.75rem", margin: 0 }}>Verify your land ownership</p>
+                  </div>
+                </div>
+                <button onClick={() => { setShowOtpModal(false); setOtpInput(["","","","","",""]); setOtpError(""); }} style={{
+                  width: "32px", height: "32px", borderRadius: "50%",
+                  background: "rgba(255,255,255,0.2)", border: "none",
+                  color: "#fff", cursor: "pointer", display: "flex",
+                  alignItems: "center", justifyContent: "center",
+                }}>
+                  <span className="material-symbols-outlined" style={{ fontSize: "1.1rem" }}>close</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Modal Body */}
+            <div style={{ padding: "1.5rem" }}>
+              <div style={{
+                textAlign: "center", marginBottom: "1.5rem",
+              }}>
+                <div style={{
+                  width: "56px", height: "56px", borderRadius: "50%",
+                  background: "rgba(19,236,109,0.08)", margin: "0 auto 0.75rem",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                }}>
+                  <span className="material-symbols-outlined" style={{ color: "var(--primary, #13ec6d)", fontSize: "1.75rem" }}>phonelink_lock</span>
+                </div>
+                <p style={{ color: "#4a5568", fontSize: "0.875rem", lineHeight: 1.5 }}>
+                  A 6-digit OTP has been sent for land ID<br />
+                  <strong style={{ color: "#1a1a2e", fontFamily: "monospace" }}>{landId}</strong>
+                </p>
+                <p style={{ color: "#a0aec0", fontSize: "0.75rem", marginTop: "0.25rem" }}>
+                  Check the green notification in the top-right corner
+                </p>
+              </div>
+
+              {/* OTP Input Boxes */}
+              <div style={{ display: "flex", justifyContent: "center", gap: "0.5rem", marginBottom: "1rem" }}>
+                {otpInput.map((digit, i) => (
+                  <input
+                    key={i}
+                    ref={otpRefs[i]}
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={1}
+                    value={digit}
+                    onChange={(e) => handleOtpChange(i, e.target.value)}
+                    onKeyDown={(e) => handleOtpKeyDown(i, e)}
+                    onPaste={i === 0 ? handleOtpPaste : undefined}
+                    style={{
+                      width: "48px", height: "56px", textAlign: "center",
+                      fontSize: "1.25rem", fontWeight: 800, fontFamily: "'DM Mono', monospace",
+                      border: `2px solid ${otpError ? "#ef4444" : digit ? "var(--primary, #13ec6d)" : "#e2e8f0"}`,
+                      borderRadius: "0.75rem", outline: "none",
+                      background: digit ? "rgba(19,236,109,0.04)" : "#f8fafc",
+                      color: "#1a1a2e",
+                      transition: "all 0.2s",
+                      caretColor: "var(--primary, #13ec6d)",
+                    }}
+                    onFocus={(e) => e.target.style.borderColor = "var(--primary, #13ec6d)"}
+                    onBlur={(e) => { if (!digit) e.target.style.borderColor = otpError ? "#ef4444" : "#e2e8f0"; }}
+                  />
+                ))}
+              </div>
+
+              {/* OTP Error */}
+              {otpError && (
+                <div style={{
+                  display: "flex", alignItems: "center", justifyContent: "center", gap: "0.375rem",
+                  color: "#ef4444", fontSize: "0.8rem", fontWeight: 600, marginBottom: "1rem",
+                }}>
+                  <span className="material-symbols-outlined" style={{ fontSize: "1rem" }}>error</span>
+                  {otpError}
+                </div>
+              )}
+
+              {/* Verify Button */}
+              <button
+                onClick={verifyOtp}
+                disabled={otpVerifying || otpInput.join("").length < 6}
+                style={{
+                  width: "100%", padding: "0.875rem", borderRadius: "0.75rem",
+                  border: "none", fontWeight: 800, fontSize: "0.9375rem",
+                  background: otpInput.join("").length === 6 && !otpVerifying
+                    ? "linear-gradient(135deg, #13ec6d 0%, #0aaf4f 100%)"
+                    : "#e2e8f0",
+                  color: otpInput.join("").length === 6 && !otpVerifying ? "#0c1510" : "#94a3b8",
+                  cursor: otpInput.join("").length === 6 && !otpVerifying ? "pointer" : "not-allowed",
+                  display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem",
+                  transition: "all 0.2s",
+                  boxShadow: otpInput.join("").length === 6 ? "0 4px 20px rgba(19,236,109,0.25)" : "none",
+                  fontFamily: "inherit",
+                }}
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: "1.2rem" }}>
+                  {otpVerifying ? "progress_activity" : "verified_user"}
+                </span>
+                {otpVerifying ? "Verifying..." : "Verify OTP"}
+              </button>
+
+              {/* Resend */}
+              <div style={{ textAlign: "center", marginTop: "1rem" }}>
+                <button
+                  onClick={() => {
+                    generateOtp();
+                    setOtpInput(["", "", "", "", "", ""]);
+                    setOtpError("");
+                    setTimeout(() => otpRefs[0].current?.focus(), 100);
+                  }}
+                  style={{
+                    background: "none", border: "none", color: "var(--primary, #13ec6d)",
+                    fontWeight: 700, fontSize: "0.8125rem", cursor: "pointer",
+                    display: "inline-flex", alignItems: "center", gap: "0.375rem",
+                    fontFamily: "inherit",
+                  }}
+                >
+                  <span className="material-symbols-outlined" style={{ fontSize: "1rem" }}>refresh</span>
+                  Resend OTP
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Create Project Modal */}
       {showModal && (
         <div className="ps-modal-backdrop" onClick={() => setShowModal(false)}>
@@ -700,8 +948,12 @@ export default function ProjectSubmission() {
                         // Simulate verification API call
                         await new Promise((r) => setTimeout(r, 1500));
                         if (landId.trim().length >= 5) {
-                          setLandIdVerified(true);
-                          setLandIdError("");
+                          // Generate OTP and show modal
+                          generateOtp();
+                          setOtpInput(["", "", "", "", "", ""]);
+                          setOtpError("");
+                          setShowOtpModal(true);
+                          setTimeout(() => otpRefs[0].current?.focus(), 300);
                         } else {
                           setLandIdError("Invalid Land ID. Please check and try again.");
                         }
