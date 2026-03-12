@@ -1,19 +1,30 @@
 // src/blockchain/config.js
 
-// ── Contract Address (replace with your deployed address from Step 3.2) ──
-export const CARBON_CREDIT_ADDRESS = "0xYourDeployedContractAddressHere";
+// ── Deployed Contract Address on Polygon Amoy ──────────────────
+// Replace with the actual deployed address after running Remix deploy
+export const CARBON_CREDIT_ADDRESS = "0xYOUR_DEPLOYED_CONTRACT_ADDRESS";
 
-// ── Network Configuration ──
+// ── Network Config ──────────────────────────────────────────────
 export const POLYGON_AMOY_CHAIN_ID = 80002;
+export const RPC_URL = "https://polygon-amoy-bor-rpc.publicnode.com";
 export const BLOCK_EXPLORER = "https://amoy.polygonscan.com/tx/";
 
-// ── Token IDs — each ID is a different credit type ──
-// You define these when you mint. Examples:
+// ── ERC-1155 Token IDs — each ID = one carbon credit type ──────
+// Token ID 1 = Solar 2023 credits, Token ID 2 = Wind 2023, etc.
+// Add more as the admin mints new credit types in Remix
 export const CREDIT_TYPES = {
   SOLAR_2023:  1,
   WIND_2023:   2,
   FOREST_2023: 3,
   SOLAR_2024:  4,
   WIND_2024:   5,
-  // Add more as you create new project types
+};
+
+// ── Amoy Network Config object (for wallet_addEthereumChain) ────
+export const AMOY_NETWORK = {
+  chainId: `0x${(80002).toString(16)}`,
+  chainName: "Polygon Amoy Testnet",
+  nativeCurrency: { name: "POL", symbol: "POL", decimals: 18 },
+  rpcUrls: ["https://polygon-amoy-bor-rpc.publicnode.com"],
+  blockExplorerUrls: ["https://amoy.polygonscan.com"],
 };

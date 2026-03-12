@@ -1,92 +1,106 @@
 // src/blockchain/useBlockchain.js
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { ethers } from "ethers";
 import CarbonCreditABI from "./contracts/CarbonCreditERC1155.json";
-import { CARBON_CREDIT_ADDRESS, POLYGON_AMOY_CHAIN_ID } from "./config";
+import { CARBON_CREDIT_ADDRESS, POLYGON_AMOY_CHAIN_ID, AMOY_NETWORK } from "./config";
 
 export function useBlockchain() {
-  const [account, setAccount] = useState(null);
-  const [isConnecting, setIsConnecting] = useState(false);
-  const [error, setError] = useState(null);
+  const [account, setAccount]         = useState(null);
+  const [isConnecting, setConnecting]  = useState(false);
+  const [chainOk, setChainOk]          = useState(false);
+  const [error, setError]              = useState(null);
 
-  // ── Connect MetaMask wallet ──
+  // ── Auto-detect already-connected wallet on page load ──────
+  useEffect(() => {
+    if (!window.ethereum) return;
+    window.ethereum.request({ method: 'eth_accounts' }).then(accs => {
+      if (accs.length > 0) setAccount(accs[0]);
+    });
+    window.ethereum.on('accountsChanged', accs => setAccount(accs[0] || null));
+    window.ethereum.on('chainChanged', () => window.location.reload());
+  }, []);
+
+  // ── Connect MetaMask + auto-add Amoy if needed ────────────
   const connectWallet = useCallback(async () => {
     if (!window.ethereum) {
-      alert("MetaMask not found! Please install MetaMask extension.");
+      window.open('https://metamask.io/download/', '_blank');
       return null;
     }
-    setIsConnecting(true);
+    setConnecting(true);
+    setError(null);
     try {
       const provider = new ethers.BrowserProvider(window.ethereum);
-      await provider.send("eth_requestAccounts", []);
+      await provider.send('eth_requestAccounts', []);
       const network = await provider.getNetwork();
 
-      // Force switch to Amoy if user is on wrong network
       if (Number(network.chainId) !== POLYGON_AMOY_CHAIN_ID) {
         try {
           await window.ethereum.request({
-            method: "wallet_switchEthereumChain",
-            params: [{ chainId: `0x${POLYGON_AMOY_CHAIN_ID.toString(16)}` }],
+            method: 'wallet_switchEthereumChain',
+            params: [{ chainId: AMOY_NETWORK.chainId }],
           });
-        } catch (switchError) {
-          // If Amoy not added, add it automatically
-          if (switchError.code === 4902) {
+        } catch (switchErr) {
+          if (switchErr.code === 4902) {
             await window.ethereum.request({
-              method: "wallet_addEthereumChain",
-              params: [{
-                chainId: `0x${POLYGON_AMOY_CHAIN_ID.toString(16)}`,
-                chainName: "Polygon Amoy Testnet",
-                nativeCurrency: { name: "POL", symbol: "POL", decimals: 18 },
-                rpcUrls: ["https://rpc-amoy.polygon.technology/"],
-                blockExplorerUrls: ["https://amoy.polygonscan.com"]
-              }]
+              method: 'wallet_addEthereumChain',
+              params: [AMOY_NETWORK],
             });
-          }
+          } else throw switchErr;
         }
       }
 
       const signer = await provider.getSigner();
-      const addr = await signer.getAddress();
+      const addr   = await signer.getAddress();
       setAccount(addr);
-      setIsConnecting(false);
+      setChainOk(true);
+      setConnecting(false);
       return signer;
     } catch (err) {
       setError(err.message);
-      setIsConnecting(false);
+      setConnecting(false);
       return null;
     }
   }, []);
 
-  // ── Transfer credits to another wallet ──
+  // ── Helper: get contract instance with signer ──────────────
+  const getContract = async () => {
+    const signer = await connectWallet();
+    if (!signer) return null;
+    return new ethers.Contract(CARBON_CREDIT_ADDRESS, CarbonCreditABI, signer);
+  };
+
+  // ── Transfer credits to another wallet ────────────────────
   const transferCredits = async (toAddress, tokenId, amount) => {
-    const signer = await connectWallet();
-    if (!signer) return null;
-    const contract = new ethers.Contract(CARBON_CREDIT_ADDRESS, CarbonCreditABI, signer);
-    const tx = await contract.transferCredits(toAddress, tokenId, amount);
+    const contract = await getContract();
+    if (!contract) return null;
+    const tx      = await contract.transferCredits(toAddress, tokenId, amount);
     const receipt = await tx.wait();
     return { txHash: tx.hash, receipt };
   };
 
-  // ── Permanently retire (burn) credits ──
+  // ── Permanently retire (burn) credits ─────────────────────
   const retireCredits = async (tokenId, amount) => {
-    const signer = await connectWallet();
-    if (!signer) return null;
-    const contract = new ethers.Contract(CARBON_CREDIT_ADDRESS, CarbonCreditABI, signer);
-    const tx = await contract.retireCredits(tokenId, amount);
+    const contract = await getContract();
+    if (!contract) return null;
+    const tx      = await contract.retireCredits(tokenId, amount);
     const receipt = await tx.wait();
     return { txHash: tx.hash, receipt };
   };
 
-  // ── Get credit balance for an address ──
+  // ── Read balance for a wallet address + token ID ──────────
   const getBalance = async (address, tokenId) => {
-    const provider = new ethers.BrowserProvider(window.ethereum);
-    const contract = new ethers.Contract(CARBON_CREDIT_ADDRESS, CarbonCreditABI, provider);
-    const balance = await contract.getCreditBalance(address, tokenId);
-    return balance.toString();
+    const provider = new ethers.JsonRpcProvider(
+      'https://polygon-amoy-bor-rpc.publicnode.com'
+    );
+    const contract = new ethers.Contract(
+      CARBON_CREDIT_ADDRESS, CarbonCreditABI, provider
+    );
+    const bal = await contract.getCreditBalance(address, tokenId);
+    return bal.toString();
   };
 
   return {
-    account, isConnecting, error,
-    connectWallet, transferCredits, retireCredits, getBalance
+    account, isConnecting, chainOk, error,
+    connectWallet, transferCredits, retireCredits, getBalance,
   };
 }

@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import { TransactionHistory } from "./Transaction-History";
 import { supabase } from "../lib/supabase";
 import { useAuth } from "../context/AuthContext";
+import TransferCredits from "../components/TransferCredits";
+import RetireCredits from "../components/RetireCredits";
 
 export default function PortfolioPage({ onNavigate }) {
   const { user } = useAuth();
@@ -168,6 +170,12 @@ export default function PortfolioPage({ onNavigate }) {
             ))
           )}
         </div>
+      </div>
+
+      {/* Transfer & Retire Credits */}
+      <div style={{ display: "flex", gap: "24px", marginTop: "32px", flexWrap: "wrap" }}>
+        <TransferCredits />
+        <RetireCredits />
       </div>
     </div>
   );

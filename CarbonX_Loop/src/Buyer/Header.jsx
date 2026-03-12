@@ -1,4 +1,5 @@
 import React from "react";
+import ConnectWallet from "../components/ConnectWallet";
 
 export default function Header({
   isDark,
@@ -60,6 +61,9 @@ export default function Header({
 
           {/* Actions */}
           <div className="flex items-center gap-3">
+            {/* Connect Wallet */}
+            <ConnectWallet />
+
             {/* Dark mode toggle */}
             <button
               id="theme-toggle"

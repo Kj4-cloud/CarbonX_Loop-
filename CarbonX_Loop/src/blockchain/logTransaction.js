@@ -1,32 +1,28 @@
-/ src/blockchain/logTransaction.js
-import { supabase } from "../supabaseClient"; // your existing Supabase client
+// src/blockchain/logTransaction.js
+import { supabase } from "../lib/supabase";
 import { BLOCK_EXPLORER, CREDIT_TYPES } from "./config";
 
 export const logTransaction = async ({
-  txHash, fromAddr, toAddr, tokenId, amount, txType
+  txHash, fromAddr, toAddr = null,
+  tokenId, amount, txType, blockNumber = null,
 }) => {
-  // Get credit name from token ID
   const creditName = Object.keys(CREDIT_TYPES).find(
-    key => CREDIT_TYPES[key] === tokenId
+    k => CREDIT_TYPES[k] === tokenId
   ) || `Token #${tokenId}`;
 
-  const { data, error } = await supabase
-    .from("transactions")
-    .insert([{
-      tx_hash:     txHash,
-      from_addr:   fromAddr,
-      to_addr:     toAddr || null,
-      token_id:    tokenId,
-      amount:      amount,
-      tx_type:     txType,
-      credit_name: creditName,
-      status:      "confirmed",
-    }]);
+  const { error } = await supabase.from('transactions').insert([{
+    tx_hash:      txHash,
+    from_addr:    fromAddr,
+    to_addr:      toAddr,
+    token_id:     tokenId,
+    amount:       amount,
+    tx_type:      txType,
+    credit_name:  creditName,
+    status:       'confirmed',
+    block_number: blockNumber,
+    created_at:   new Date().toISOString(),
+  }]);
 
-  if (error) {
-    console.error("Failed to log transaction to Supabase:", error);
-  } else {
-    console.log(`Transaction logged: ${BLOCK_EXPLORER}${txHash}`);
-  }
-  return { data, error };
+  if (error) console.error('Supabase log error:', error);
+  else console.log(`Logged: ${BLOCK_EXPLORER}${txHash}`);
 };
