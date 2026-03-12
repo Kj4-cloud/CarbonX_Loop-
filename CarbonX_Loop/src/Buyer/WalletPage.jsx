@@ -277,15 +277,15 @@ export default function WalletPage() {
       {/* ── Deposit Modal ───────────────────────────────────────────── */}
       {showDeposit && (
         <div
-          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4 animate-fade-in"
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[200] flex items-end sm:items-center justify-center p-0 sm:p-4 animate-fade-in"
           onClick={() => setShowDeposit(false)}
         >
           <div
-            className="bg-white dark:bg-[#1a2b21] rounded-2xl max-w-md w-full p-0 animate-slide-up overflow-hidden"
+            className="bg-white dark:bg-[#1a2b21] rounded-t-2xl sm:rounded-2xl max-w-md w-full p-0 animate-slide-up overflow-hidden max-h-[90dvh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header with gradient */}
-            <div style={{ background: "linear-gradient(135deg, #13ec6d 0%, #0aaf4f 100%)" }} className="px-6 py-5 relative overflow-hidden">
+            <div style={{ background: "linear-gradient(135deg, #13ec6d 0%, #0aaf4f 100%)" }} className="px-6 py-5 relative overflow-hidden sticky top-0 z-10">
               <div className="absolute -right-6 -top-6 w-24 h-24 rounded-full opacity-20" style={{ background: "radial-gradient(circle, white, transparent)" }} />
               <div className="flex items-center justify-between relative z-10">
                 <div className="flex items-center gap-3">
