@@ -4,6 +4,7 @@ import { BrowserRouter } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 import { WalletProvider } from "./context/WalletContext";
 import { ThemeProvider } from "./hooks/useStore";
+import { CarbonPriceProvider } from "./context/CarbonPriceContext";
 import App from "./App.jsx";
 import "./index.css";
 import "./styles/seller-globals.css";
@@ -14,7 +15,9 @@ ReactDOM.createRoot(document.getElementById("root")).render(
       <AuthProvider>
         <WalletProvider>
           <ThemeProvider>
-            <App />
+            <CarbonPriceProvider>
+              <App />
+            </CarbonPriceProvider>
           </ThemeProvider>
         </WalletProvider>
       </AuthProvider>

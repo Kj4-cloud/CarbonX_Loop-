@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "../../lib/supabase";
 import { useAuth } from "../../context/AuthContext";
+import CarbonCreditChart from "../../components/CarbonCreditChart";
 import "./FarmerProfileDashboard.css";
 
 const CROP_OPTIONS = [
@@ -321,8 +322,10 @@ export default function FarmerProfileDashboard({ farmer }) {
             </div>
           </section>
 
-          {/* ===== Tier Card ===== */}
-    
+          {/* ===== Carbon Credit Price Chart ===== */}
+          <section className="animate-fade-in" style={{ animationDelay: '0.1s' }}>
+            <CarbonCreditChart />
+          </section>
 
           {/* ===== Portfolio & Revenue Row ===== */}
           <div

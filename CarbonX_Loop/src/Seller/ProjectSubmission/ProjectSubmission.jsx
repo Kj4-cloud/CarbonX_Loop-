@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { supabase } from "../../lib/supabase";
 import { useAuth } from "../../context/AuthContext";
+import { useCarbonPrice } from "../../context/CarbonPriceContext";
 import VegetationMap from "./VegetationMap";
 import "./ProjectSubmission.css";
 import "../PhotoVerification/PhotoVerification.css";
@@ -32,6 +33,7 @@ const CARBON_RATE = 0.02; // tonnes CO₂ per plant per year
 
 export default function ProjectSubmission() {
   const { user, farmerProfile } = useAuth();
+  const { currentPrice } = useCarbonPrice();
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -45,7 +47,6 @@ export default function ProjectSubmission() {
     landSize: "",
     plantType: PLANT_TYPES[0],
     plantDensity: "100",
-    pricePerCredit: "1200",
   });
   const [formErrors, setFormErrors] = useState({});
 
@@ -329,7 +330,7 @@ export default function ProjectSubmission() {
         land_size_acres: parseFloat(formData.landSize),
         plant_type: formData.plantType,
         plant_density_per_acre: parseInt(formData.plantDensity),
-        price_per_credit: parseFloat(formData.pricePerCredit),
+        price_per_credit: currentPrice,
         land_id: landId,
         is_listed: true,
       })
@@ -359,7 +360,6 @@ export default function ProjectSubmission() {
       landSize: "",
       plantType: PLANT_TYPES[0],
       plantDensity: "100",
-      pricePerCredit: "1200",
     });
     setFormErrors({});
     setCapturedImage(null);
@@ -1124,7 +1124,7 @@ export default function ProjectSubmission() {
                 </div>
               </div>
 
-              {/* Plant Density & Price */}
+              {/* Plant Density & Market Price */}
               <div className="ps-form-row">
                 <div className="ps-form-group">
                   <label className="ps-form-label">
@@ -1154,16 +1154,48 @@ export default function ProjectSubmission() {
                       currency_rupee
                     </span>
                     Price / Credit (₹)
+                    <span style={{
+                      display: 'inline-flex', alignItems: 'center', gap: '0.25rem',
+                      marginLeft: '0.5rem', padding: '0.125rem 0.5rem',
+                      background: 'rgba(19,236,109,0.1)', borderRadius: '9999px',
+                      fontSize: '0.5625rem', fontWeight: 700, color: '#13ec6d',
+                      textTransform: 'none', letterSpacing: '0.02em',
+                    }}>
+                      <span style={{
+                        width: '5px', height: '5px', borderRadius: '50%',
+                        background: '#13ec6d', animation: 'pulse 2s infinite',
+                      }} />
+                      Market Rate • Live
+                    </span>
                   </label>
-                  <input
-                    type="number"
-                    name="pricePerCredit"
-                    value={formData.pricePerCredit}
-                    onChange={handleInputChange}
-                    placeholder="e.g. 1200"
-                    min="1"
-                    className="ps-form-input"
-                  />
+                  <div style={{
+                    position: 'relative',
+                  }}>
+                    <input
+                      type="text"
+                      value={`₹${currentPrice.toLocaleString('en-IN')}`}
+                      readOnly
+                      className="ps-form-input"
+                      style={{
+                        background: 'rgba(19,236,109,0.04)',
+                        borderColor: 'rgba(19,236,109,0.2)',
+                        color: '#13ec6d',
+                        fontWeight: 800,
+                        fontSize: '1rem',
+                        cursor: 'not-allowed',
+                      }}
+                    />
+                    <span style={{
+                      position: 'absolute', right: '0.75rem', top: '50%',
+                      transform: 'translateY(-50%)',
+                      display: 'flex', alignItems: 'center', gap: '0.25rem',
+                      fontSize: '0.625rem', color: 'var(--slate-400)',
+                      fontWeight: 600,
+                    }}>
+                      <span className="material-symbols-outlined" style={{ fontSize: '0.875rem', color: 'var(--primary)' }}>trending_up</span>
+                      tCO₂e
+                    </span>
+                  </div>
                 </div>
               </div>
 
@@ -1327,7 +1359,7 @@ export default function ProjectSubmission() {
                     ₹
                     {(
                       parseFloat(calcCredits()) *
-                      parseFloat(formData.pricePerCredit || 0)
+                      currentPrice
                     ).toLocaleString("en-IN")}
                   </p>
                 </div>
